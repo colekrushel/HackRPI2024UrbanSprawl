@@ -41,7 +41,58 @@ public class handlePath : Vehicle
             print(T.name);
             print(path[0]);
 
-            
+            //handle invalid path cases
+
+            //edge of map
+
+            //unfilled road
+
+
+            Vector3Int newTilePos;
+            Tile T2;
+
+            switch (T.name)
+            {
+                
+                case "RIGHTLANE":
+                    newTilePos = tilePath[0] + new Vector3Int(1, 0, 0);
+                    //get right tile
+                    T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    //add to path
+                    tilePath.Add(newTilePos);
+                    path.Add(myTilemap.CellToWorld(newTilePos));
+                    break;
+
+                case "LEFTLANE":
+                    newTilePos = tilePath[0] + new Vector3Int(-1, 0, 0);
+                    //get left tile
+                    T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    //add to path
+                    tilePath.Add(newTilePos);
+                    path.Add(myTilemap.CellToWorld(newTilePos));
+                    break;
+
+                case "DOWNLANE:":
+                    newTilePos = tilePath[0] + new Vector3Int(0, -1, 0);
+                    //get below tile
+                    T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    //add to path
+                    tilePath.Add(newTilePos);
+                    path.Add(myTilemap.CellToWorld(newTilePos));
+                    break;
+
+                case "UPLANE":
+                    newTilePos = tilePath[0] + new Vector3Int(0, 1, 0);
+                    //get right tile
+                    T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    //add to path
+                    tilePath.Add(newTilePos);
+                    path.Add(myTilemap.CellToWorld(newTilePos));
+                    break;
+
+                default:
+                    break;
+            }
 
             pathFinished = true;
         }
