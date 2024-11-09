@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: TileMap_0
+  m_Name: ExitDown
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 306661485, guid: d281cd6df355a2b42b50feab360ef445, type: 3}
+  m_Sprite: {fileID: 1222311322, guid: d281cd6df355a2b42b50feab360ef445, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
