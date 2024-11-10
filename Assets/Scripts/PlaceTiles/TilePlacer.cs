@@ -76,6 +76,8 @@ public class TilePlacer : MonoBehaviour
         currentTiles = placeTile.Tiles;
         currentTileInt = placeTile.CurrentTileInt;
         currentTileIntLength = placeTile.CurrentTileIntLength;
+
+        placeTileMap = placeTile.PlaceableTilemaps;
     }
 
     void SetNonProtectedTiles() {

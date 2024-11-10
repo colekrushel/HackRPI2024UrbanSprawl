@@ -23,6 +23,7 @@ public class TileRotator : MonoBehaviour
 
     Image currentSpriteRenderer;
 
+    public Tilemap PlaceableTilemaps => placeableTilemaps;
     public Tile CurrentTile => currentTile;
     public Tile[] Tiles => tiles;
     public int TileCost => tileCost;
