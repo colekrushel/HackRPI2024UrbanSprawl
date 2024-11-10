@@ -71,6 +71,7 @@ public class TilePlacer : MonoBehaviour
     void SetTileAndCost(TileRotator placeTile) {
         Tile curTile = placeTile.CurrentTile;
         tileToPlace = curTile;
+        Debug.Log(curTile);
         currentSpriteRenderer.sprite = curTile.sprite;
         cost = placeTile.TileCost;
 

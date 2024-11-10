@@ -31,7 +31,7 @@ public class TileRotator : MonoBehaviour
     public int CurrentTileIntLength => currentTileIntLength;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         currentSpriteRenderer = GetComponent<Image>();
         currentTileIntLength = tiles.Length;
