@@ -8,26 +8,37 @@ using UnityEngine.Tilemaps;
 public class handlePath : Vehicle
 {
     //// Start is called before the first frame update
-
+    float waitTimer;
+    float tunnelTimer;
     public override void Start()
     {
         base.Start();
         GeneratePath();
-
+        waitTimer = 0;
+        tunnelTimer = -1;
     }
 
     //// Update is called once per frame
     void Update()
     {
-        //if spinning out stop moving
-        if (spinOut)
+        print(tunnelTimer);
+        //stop moving on certain conditions
+        if (tunnelTimer > 0)
+        {
+            gameObject.transform.position = new Vector3(50, 50, 50);
+            tunnelTimer -= Time.deltaTime;
+        } else if (tunnelTimer > -0.2 && tunnelTimer < 0)
+        {
+            gameObject.transform.position = path[0];
+            tunnelTimer = -1;
+        }
+        else if (spinOut || waitTimer > 0 || path.Count == 0)
         {
             //stop
+            waitTimer -= Time.deltaTime;
         }
         else
         {
-
-
             //animate vehicle along path
             gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, 0);
             Vector3 nextPos = path[0];
@@ -39,24 +50,64 @@ public class handlePath : Vehicle
             {
                 gameObject.transform.rotation = Quaternion.Slerp(gameObject.transform.rotation, Quaternion.LookRotation(rotationDir), 20f * Time.deltaTime);
             }
-            //gameObject.transform.forward = rotationDir;
+            //vehicle is on edge of path then count as success
+            if(path.Count == 1)
+            {
+                if (Vector3.Distance(gameObject.transform.position, nextPos) <= 0.5f)
+                {
+                    Tile T = myTilemap.GetTile<Tile>(myTilemap.WorldToCell(gameObject.transform.position));
+                    //make sure bus/car are in right exit
+                    if (T.name == "ExitUp" || T.name == "ExitDown" || T.name == "ExitLeft" || T.name == "ExitRight")
+                    {
+                        //kill
+                        //if car then safe
+                        if (gameObject.tag == "Car")
+                        {
+                            Destroy(gameObject);
+                        }
+                        else
+                        {
+                            //else explode!!
+                            explosionEffect.Play();
+                            //delete object
+                            StartCoroutine(killself());
+                        }
+                        
+                    } else if(T.name == "BusExitUp" || T.name == "BusExitDown" || T.name == "BusExitLeft" || T.name == "BusExitRight")
+                    {
+                        //if bus then safe
+                        if (gameObject.tag == "Bus")
+                        {
+                            Destroy(gameObject);
+                        }
+                        else
+                        {
+                            //else explode!!
+                            explosionEffect.Play();
+                            //delete object
+                            StartCoroutine(killself());
+                        }
+                    }
+                }
+            }
             //if vehicle reaches this element, then cut it from the path
             if (Vector3.Distance(gameObject.transform.position, nextPos) <= 0.01f)
             {
-                //if this is the last path element, then don't remove it
-                if(nextPos == path[path.Count - 1])
+                //if this is a tunnel then activate tunnel timer
+                Tile T = myTilemap.GetTile<Tile>(myTilemap.WorldToCell(gameObject.transform.position));
+                if(T.name == "TunnelInDown" || T.name == "TunnelInUp" || T.name == "TunnelInRight" || T.name == "TunnelInLeft")
                 {
-                    //check if player is on an exit tile
-                    Tile T = myTilemap.GetTile<Tile>(myTilemap.WorldToCell(gameObject.transform.position));
-                    if (T.name == "ExitUp" || T.name == "ExitDown" || T.name == "ExitLeft" || T.name == "ExitRight"){
-                        //kill
-                        Destroy(gameObject);
-                    }
-
-                } else
-                {
-                    path.RemoveAt(0);
+                    tunnelTimer = 1f;
                 }
+                
+                //if path has a stoplight on it, then start a wait period until car moves again
+                Tile T2 = topTilemap.GetTile<Tile>(topTilemap.WorldToCell(gameObject.transform.position));
+                if(T2 != null)
+                {
+                    waitTimer = 1f;
+                }
+                path.RemoveAt(0);
+                
                 
             }
             //if (path.Count == 0)
@@ -69,11 +120,10 @@ public class handlePath : Vehicle
 
     private void OnCollisionEnter(Collision other)
     {
-        print("EXPLODE!!!");
+        //print("EXPLODE!!!");
         //explode
         explosionEffect.Play();
         gameObject.GetComponent<Rigidbody>().AddForce(other.gameObject.transform.forward * 50);
-        new WaitForSeconds(2);
         //delete object
         StartCoroutine(killself());
 
@@ -124,22 +174,17 @@ public class handlePath : Vehicle
             //print(currTilePos);
             //get last elemnt in tile path
             Tile T = myTilemap.GetTile<Tile>(tilePath[tilePath.Count-1]);
-            print(T.name);
             if (T == null)
             {
                 //break loop if tile is null
                 pathFinished = true;
                 break;
             }
-            //print("path loop");
-            //print(T.name);
-            //print("path pos:");
-            //print(path[path.Count-1]);
 
             //handle illegal roads?
 
 
-
+            Vector3 tunnelExit;
             Vector3Int newTilePos;
             Tile T2;
 
@@ -147,6 +192,9 @@ public class handlePath : Vehicle
             {
                 case "Blank":
                     //on blank tile, keep going prev direction
+                    break;
+                case "TunnelOutRight":
+                case "BusStartRight":
                 case "StartLeft":
                 case "LaneRight":
 
@@ -170,6 +218,8 @@ public class handlePath : Vehicle
                     tilePath.Add(newTilePos);
                     path.Add(myTilemap.CellToWorld(newTilePos) + new Vector3(0.5f, 0.5f, 0));
                     break;
+                case "TunnelOutLeft":
+                case "BusStartLeft":
                 case "StartRight":
                 case "LaneLeft":
 
@@ -192,6 +242,8 @@ public class handlePath : Vehicle
                     tilePath.Add(newTilePos);
                     path.Add(myTilemap.CellToWorld(newTilePos) + new Vector3(0.5f, 0.5f, 0));
                     break;
+                case "TunnelOutDown":
+                case "BusStartDown":
                 case "StartDown":
                 case "LaneDown":
 
@@ -214,6 +266,8 @@ public class handlePath : Vehicle
                     tilePath.Add(newTilePos);
                     path.Add(myTilemap.CellToWorld(newTilePos) + new Vector3(0.5f, 0.5f, 0));
                     break;
+                case "TunnelOutUp":
+                case "BusStartUp":
                 case "StartUp":
                 case "LaneUp":
 
@@ -366,13 +420,70 @@ public class handlePath : Vehicle
                     tilePath.Add(newTilePos);
                     path.Add(myTilemap.CellToWorld(newTilePos) + new Vector3(0.5f, 0.5f, 0));
                     break;
+                //tunnels
+                case "TunnelInUp":
+                    //get associated exit
+                    tunnelExit = getTunnelExit("Up");
+                    if (tunnelExit != null)
+                    {
+                        path.Add(tunnelExit);
+                        tilePath.Add(myTilemap.WorldToCell(tunnelExit));
+                    }
+                    else
+                    {
+                        pathFinished = true;
+                    }
+                    break;
+                case "TunnelInDown":
+                    //get associated exit
+                    tunnelExit = getTunnelExit("Down");
+                    if (tunnelExit != null)
+                    {
+                        path.Add(tunnelExit);
+                        tilePath.Add(myTilemap.WorldToCell(tunnelExit));
+                    }
+                    else
+                    {
+                        pathFinished = true;
+                    }
+                    break;
+                case "TunnelInRight":
+                    //get associated exit
+                    tunnelExit = getTunnelExit("Right");
+                    if (tunnelExit != null)
+                    {
+                        path.Add(tunnelExit);
+                        tilePath.Add(myTilemap.WorldToCell(tunnelExit));
+                    }
+                    else
+                    {
+                        pathFinished = true;
+                    }
+                    break;
+                case "TunnelInLeft":
+                    //get associated exit
+                    tunnelExit = getTunnelExit("Left");
+                    if (tunnelExit != null)
+                    {
+                        path.Add(tunnelExit);
+                        tilePath.Add(myTilemap.WorldToCell(tunnelExit));
+                    } else
+                    {
+                        pathFinished = true;
+                    }
+                    break;
                 case "ExitUp":
                 case "ExitDown":
                 case "ExitRight":
                 case "ExitLeft":
-                    //end loop 
                     pathFinished = true;
-                    //Destroy(gameObject);
+                    break;
+                case "BusExitUp":
+                case "BusExitDown":
+                case "BusExitRight":
+                case "BusExitLeft":
+
+                    pathFinished = true;
                     break;
                 default:
                     break;
@@ -381,5 +492,55 @@ public class handlePath : Vehicle
             //pathFinished = true;
         }
         
+    }
+
+    Vector3 getTunnelExit(string d)
+    {
+        int x, y, z;
+        for (x = myTilemap.cellBounds.min.x; x < myTilemap.cellBounds.max.x; x++)
+        {
+            for (y = myTilemap.cellBounds.min.y; y < myTilemap.cellBounds.max.y; y++)
+            {
+                for (z = myTilemap.cellBounds.min.z; z < myTilemap.cellBounds.max.z; z++)
+                {
+
+                    Tile T = myTilemap.GetTile<Tile>(new Vector3Int(x, y, z));
+                    if (T != null)
+                    {
+                        switch (d)
+                        {
+                            case "Up":
+                                if(T.name == "TunnelOutUp")
+                                {
+                                    return myTilemap.CellToWorld(new Vector3Int(x, y, z)) + new Vector3(.5f, .5f, 0f);
+                                }
+                                break;
+                            case "Down":
+                                if (T.name == "TunnelOutDown")
+                                {
+                                    return myTilemap.CellToWorld(new Vector3Int(x, y, z)) + new Vector3(.5f, .5f, 0f);
+                                }
+                                break;
+                            case "Left":
+                                if (T.name == "TunnelOutLeft")
+                                {
+                                    return myTilemap.CellToWorld(new Vector3Int(x, y, z)) + new Vector3(.5f, .5f, 0f);
+                                }
+                                break;
+                            case "Right":
+                                if (T.name == "TunnelOutRight")
+                                {
+                                    return myTilemap.CellToWorld(new Vector3Int(x, y, z)) + new Vector3(.5f, .5f, 0f);
+                                }
+                                break;
+                        }
+                    }
+                   
+                }
+            }
+
+        }
+        return new Vector3(0, 0, 0);
+
     }
 }
