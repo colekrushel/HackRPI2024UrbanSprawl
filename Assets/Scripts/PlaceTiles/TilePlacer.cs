@@ -104,6 +104,13 @@ public class TilePlacer : MonoBehaviour
 
         placeTileMap.SetTile(properlyMousTWrld, tileToPlace);
         //Implement cost thing-a-majig
+
+        //re-generate paths for cars
+        foreach(GameObject myObj in GameObject.FindGameObjectsWithTag("Car"))
+        {
+            print("trigger");
+            myObj.GetComponent<handlePath>().GeneratePath();
+        }
     }
 
     void RemoveNonProtectedTiles() {

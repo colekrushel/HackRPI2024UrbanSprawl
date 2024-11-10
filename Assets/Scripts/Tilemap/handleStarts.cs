@@ -47,7 +47,6 @@ public class handleStarts : MonoBehaviour
             //creeate a vehicle from each spawn tile
             for (int i = 0; i < startTiles.Count; i++)
             {
-
                 GameObject newCar = Instantiate(vehiclePrefab, startTiles[i] + new Vector3(0.5f, 0.5f, 0), Quaternion.identity);
             }
             spawnTime = 0;
