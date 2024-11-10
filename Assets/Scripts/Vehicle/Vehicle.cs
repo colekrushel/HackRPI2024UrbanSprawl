@@ -10,6 +10,7 @@ public class Vehicle : MonoBehaviour
     protected Vector3Int currTilePos;
     protected Vector3 nextDestination;
     [SerializeField] protected Tilemap myTilemap;
+    protected Tilemap topTilemap;
     protected List<Vector3> path;
     protected List<Vector3Int> tilePath;
     protected ParticleSystem explosionEffect;
@@ -18,6 +19,7 @@ public class Vehicle : MonoBehaviour
     {
         spinOut = false;
         myTilemap = GameObject.Find("Tilemap").GetComponent<Tilemap>();
+        topTilemap = GameObject.Find("UrbanOnTop").GetComponent<Tilemap>();
         explosionEffect = gameObject.GetComponent<ParticleSystem>();
         explosionEffect.Stop();
         //set vehicle pos relative to start pos

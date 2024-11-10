@@ -15,9 +15,9 @@ public class TilePlacer : MonoBehaviour
     Vector3 mousTOffset;
 
     [SerializeField]
-    Tilemap placeTileMap;
+    Tilemap placeTileMap, topTileMap;
     [SerializeField]
-    Button BlankButton, CornerLeftButton, CornerRightButton, LaneButton, LightsButton;
+    Button BlankButton, CornerLeftButton, CornerRightButton, LaneButton, LightsButton, StartButton, ResetButton;
     [SerializeField]
     TileRotator BlankTile, CornerLeftTile, CornerRightTile, LaneTile, LightsTile;
 
@@ -49,6 +49,9 @@ public class TilePlacer : MonoBehaviour
         //CornerRightButton.onClick.AddListener(delegate { SetTileAndCost(CornerRightTile, 5); });
         LaneButton.onClick.AddListener(delegate { SetTileAndCost(LaneTile); });
         LightsButton.onClick.AddListener(delegate { SetTileAndCost(LightsTile); });
+
+        StartButton.onClick.AddListener(delegate { GameObject.Find("Tilemap").GetComponent<handleStarts>().getStarts(); });
+        ResetButton.onClick.AddListener(delegate { ResetCanvas(); });
 
         AddToTileCostDictionairy(BlankTile);
         AddToTileCostDictionairy(CornerLeftTile);
@@ -108,7 +111,11 @@ public class TilePlacer : MonoBehaviour
         //re-generate paths for cars
         foreach(GameObject myObj in GameObject.FindGameObjectsWithTag("Car"))
         {
-            print("trigger");
+            myObj.GetComponent<handlePath>().GeneratePath();
+        }
+        //re-generate paths for buses
+        foreach (GameObject myObj in GameObject.FindGameObjectsWithTag("Bus"))
+        {
             myObj.GetComponent<handlePath>().GeneratePath();
         }
     }
@@ -130,6 +137,54 @@ public class TilePlacer : MonoBehaviour
         }
 
         placeTileMap.SetTile(properlyMousTWrld, null);
+    }
+
+    void ResetCanvas()
+    {
+        //restore cash
+        cashHandler.resetCash();
+        //delete all cars
+        foreach (GameObject myObj in GameObject.FindGameObjectsWithTag("Car"))
+        {
+            Destroy(myObj);
+        }
+        //delete all buses
+        foreach (GameObject myObj in GameObject.FindGameObjectsWithTag("Bus"))
+        {
+            Destroy(myObj);
+        }
+
+        //remove start points
+        GameObject.Find("Tilemap").GetComponent<handleStarts>().resetStarts();
+        //reset all non protected tiles
+
+        int x, y, z;
+        for (x = placeTileMap.cellBounds.min.x; x < placeTileMap.cellBounds.max.x; x++)
+        {
+            for (y = placeTileMap.cellBounds.min.y; y < placeTileMap.cellBounds.max.y; y++)
+            {
+                for (z = placeTileMap.cellBounds.min.z; z < placeTileMap.cellBounds.max.z; z++)
+                {
+                    bool isProtected = false;
+                    TileBase T = placeTileMap.GetTile<TileBase>(new Vector3Int(x, y, z));
+                    foreach (TileBase protectedTile in protectedTiles)
+                    {
+                        if (protectedTile == T)
+                        {
+                            isProtected = true;
+                        }
+                    }
+                    if (!isProtected) //reset non protected tiles
+                    {
+                        placeTileMap.SetTile(new Vector3Int(x, y, z), null);
+                    }
+                    //reset top tilemap
+                    topTileMap.SetTile(new Vector3Int(x, y, z), null);
+
+                }
+            }
+
+        }
     }
 
 

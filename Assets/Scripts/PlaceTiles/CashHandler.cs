@@ -26,6 +26,12 @@ public class CashHandler : MonoBehaviour
         UpdateCash(cash + amount);
     }
 
+    public void resetCash()
+    {
+        cash = 100;
+        curTxt.text = preText + cash;
+    }
+
     public bool RemoveCashNoDebt(int amount) {
         amount = cash - amount;
         if (amount >= 0) {
