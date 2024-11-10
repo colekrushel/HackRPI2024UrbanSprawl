@@ -978,6 +978,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: TileMap_42
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab7dc04246ebf634aba3b3035b5c51c1
+      internalID: -214034719
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -1026,6 +1047,7 @@ TextureImporter:
       TileMap_4: 1310902644
       TileMap_40: -1308994539
       TileMap_41: 104906735
+      TileMap_42: -214034719
       TileMap_5: -1423318340
       TileMap_6: 579320636
       TileMap_7: 49658366
