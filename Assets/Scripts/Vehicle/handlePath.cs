@@ -35,18 +35,35 @@ public class handlePath : Vehicle
             //animate vehicle towards first element in path
             Vector3 movementDirection = Vector3.MoveTowards(gameObject.transform.position, nextPos, 2f * Time.deltaTime);
             gameObject.transform.position = movementDirection;
-            gameObject.transform.rotation = Quaternion.Slerp(gameObject.transform.rotation, Quaternion.LookRotation(rotationDir), 20f * Time.deltaTime);
+            if (rotationDir != Vector3.zero)
+            {
+                gameObject.transform.rotation = Quaternion.Slerp(gameObject.transform.rotation, Quaternion.LookRotation(rotationDir), 20f * Time.deltaTime);
+            }
             //gameObject.transform.forward = rotationDir;
             //if vehicle reaches this element, then cut it from the path
             if (Vector3.Distance(gameObject.transform.position, nextPos) <= 0.01f)
             {
-                path.RemoveAt(0);
+                //if this is the last path element, then don't remove it
+                if(nextPos == path[path.Count - 1])
+                {
+                    //check if player is on an exit tile
+                    Tile T = myTilemap.GetTile<Tile>(myTilemap.WorldToCell(gameObject.transform.position));
+                    if (T.name == "ExitUp" || T.name == "ExitDown" || T.name == "ExitLeft" || T.name == "ExitRight"){
+                        //kill
+                        Destroy(gameObject);
+                    }
+
+                } else
+                {
+                    path.RemoveAt(0);
+                }
+                
             }
-            if (path.Count == 0)
-            {
-                //if no more items left in path, remove this vehicle (or crash it?)
-                StartCoroutine(killself());
-            }
+            //if (path.Count == 0)
+            //{
+            //    //if no more items left in path, have vehicle wait
+            //    StartCoroutine(killself());
+            //}
         }
     }
 
@@ -73,12 +90,28 @@ public class handlePath : Vehicle
     }
 
 
-//generate path based on curr pos
+
+    private void resetPath()
+    {
+        //set vehicle pos relative to start pos
+        //get tile vehicle is currently "on"
+        Vector3Int currTilePos = myTilemap.WorldToCell(gameObject.transform.position);
+        //add current tile (start tile) to path
+        Tile T = myTilemap.GetTile<Tile>(currTilePos);
+
+        tilePath = new List<Vector3Int>();
+        tilePath.Add(currTilePos);
+        Vector3 tilePos = myTilemap.CellToWorld(currTilePos);
+        path = new List<Vector3>();
+        //path.Add(tilePos + new Vector3(.5f, .5f, 0));
+    }
 
 
-void GeneratePath()
+    //generate path based on curr pos
+    public void GeneratePath()
 
     {
+        resetPath();
         int c = 1;
         bool pathFinished = false;
         //generate a path starting from the first tile and going to every tile visitable after that
@@ -87,13 +120,15 @@ void GeneratePath()
         while (!pathFinished) //loop until an end is reached
         {
             c += 1;
-            if (c == 50) { pathFinished = true; break; }
+            if (c == 500) { pathFinished = true; break; }
             //print(currTilePos);
             //get last elemnt in tile path
             Tile T = myTilemap.GetTile<Tile>(tilePath[tilePath.Count-1]);
+            print(T.name);
             if (T == null)
             {
                 //break loop if tile is null
+                pathFinished = true;
                 break;
             }
             //print("path loop");
@@ -118,6 +153,12 @@ void GeneratePath()
                     newTilePos = tilePath[tilePath.Count - 1] + new Vector3Int(1, 0, 0);
                     //get right tile
                     T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    //if null end path
+                    if(T2 == null)
+                    {
+                        pathFinished=true;
+                        break;
+                    }
                     //if blank then skip to next tile
                     while(T2.name == "Blank")
                     {
@@ -135,6 +176,11 @@ void GeneratePath()
                     newTilePos = tilePath[tilePath.Count - 1] + new Vector3Int(-1, 0, 0);
                     //get left tile
                     T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    if (T2 == null)
+                    {
+                        pathFinished = true;
+                        break;
+                    }
                     //if blank then skip to next tile
                     while (T2.name == "Blank")
                     {
@@ -152,6 +198,11 @@ void GeneratePath()
                     newTilePos = tilePath[tilePath.Count - 1] + new Vector3Int(0, -1, 0);
                     //get below tile
                     T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    if (T2 == null)
+                    {
+                        pathFinished = true;
+                        break;
+                    }
                     //if blank then skip to next tile
                     while (T2.name == "Blank")
                     {
@@ -169,6 +220,11 @@ void GeneratePath()
                     newTilePos = tilePath[tilePath.Count - 1] + new Vector3Int(0, 1, 0);
                     //get above tile
                     T2 = myTilemap.GetTile<Tile>(newTilePos);
+                    if (T2 == null)
+                    {
+                        pathFinished = true;
+                        break;
+                    }
                     //if blank then skip to next tile
                     while (T2.name == "Blank")
                     {
@@ -314,8 +370,9 @@ void GeneratePath()
                 case "ExitDown":
                 case "ExitRight":
                 case "ExitLeft":
-                    //end loop
+                    //end loop 
                     pathFinished = true;
+                    //Destroy(gameObject);
                     break;
                 default:
                     break;
